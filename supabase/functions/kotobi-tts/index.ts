@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,13 +35,64 @@ function loadApiKeys(): { name: string; key: string }[] {
   return keys;
 }
 
-// مؤشر round-robin يدور بين الطلبات (per-instance memory)
-let roundRobinIndex = 0;
-function nextStartIndex(total: number): number {
+// ===== مؤشر round-robin دائم في قاعدة البيانات =====
+// يضمن التوزيع بين المفاتيح حتى مع تعدد نسخ Edge Function
+const ROTATION_NAME = "elevenlabs";
+
+function getAdminClient() {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return null;
+  return createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+// fallback per-instance لو فشل الوصول للقاعدة
+let memoryIndex = Math.floor(Math.random() * 1000);
+
+async function nextStartIndex(total: number): Promise<number> {
   if (total <= 0) return 0;
-  const idx = roundRobinIndex % total;
-  roundRobinIndex = (roundRobinIndex + 1) % total;
-  return idx;
+  const client = getAdminClient();
+  if (!client) {
+    const idx = memoryIndex % total;
+    memoryIndex = (memoryIndex + 1) % 1000000;
+    return idx;
+  }
+  try {
+    // قراءة وزيادة المؤشر بشكل ذري عبر RPC غير متوفر؟ نستخدم select+update مع upsert
+    const { data, error } = await client
+      .from("tts_key_rotation_state")
+      .select("current_index")
+      .eq("rotation_name", ROTATION_NAME)
+      .maybeSingle();
+
+    let current = 0;
+    if (!error && data && typeof data.current_index === "number") {
+      current = data.current_index;
+    }
+
+    const idx = ((current % total) + total) % total;
+    const next = (current + 1) % 1000000;
+
+    await client
+      .from("tts_key_rotation_state")
+      .upsert(
+        {
+          rotation_name: ROTATION_NAME,
+          current_index: next,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "rotation_name" },
+      );
+
+    return idx;
+  } catch (e) {
+    console.warn("[tts] rotation state fallback to memory:", e);
+    const idx = memoryIndex % total;
+    memoryIndex = (memoryIndex + 1) % 1000000;
+    return idx;
+  }
 }
 
 // تنظيف النص قبل التحويل لصوت
@@ -135,7 +187,7 @@ serve(async (req) => {
 
     // Round-robin: ابدأ من المفتاح التالي ودر على الباقين عند الفشل
     const total = apiKeys.length;
-    const startIdx = nextStartIndex(total);
+    const startIdx = await nextStartIndex(total);
     const attempts: { name: string; status: number; detail: string }[] = [];
 
     let successResp: Response | null = null;
