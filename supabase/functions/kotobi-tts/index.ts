@@ -7,47 +7,61 @@ const corsHeaders = {
 };
 
 // صوت ElevenLabs الاحترافي المُختار للعربية
-// George — صوت ذكوري دافئ وواضح، نطق عربي ممتاز عبر eleven_multilingual_v2
 const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // George
+
+// ===== نظام تدوير مفاتيح ElevenLabs (Round-robin) =====
+// يقرأ كل المفاتيح من البيئة: ELEVENLABS_API_KEY, ELEVENLABS_API_KEY_1..N
+function loadApiKeys(): { name: string; key: string }[] {
+  const keys: { name: string; key: string }[] = [];
+  const seen = new Set<string>();
+
+  const pushKey = (name: string, value: string | undefined) => {
+    if (!value) return;
+    const trimmed = value.trim();
+    if (!trimmed || seen.has(trimmed)) return;
+    seen.add(trimmed);
+    keys.push({ name, key: trimmed });
+  };
+
+  // المفتاح الرئيسي (للتوافق الخلفي)
+  pushKey("ELEVENLABS_API_KEY", Deno.env.get("ELEVENLABS_API_KEY"));
+
+  // مفاتيح مرقمة 1..20
+  for (let i = 1; i <= 20; i++) {
+    pushKey(`ELEVENLABS_API_KEY_${i}`, Deno.env.get(`ELEVENLABS_API_KEY_${i}`));
+  }
+
+  return keys;
+}
+
+// مؤشر round-robin يدور بين الطلبات (per-instance memory)
+let roundRobinIndex = 0;
+function nextStartIndex(total: number): number {
+  if (total <= 0) return 0;
+  const idx = roundRobinIndex % total;
+  roundRobinIndex = (roundRobinIndex + 1) % total;
+  return idx;
+}
 
 // تنظيف النص قبل التحويل لصوت
 function cleanTextForTTS(input: string): string {
   if (!input) return "";
   let t = input;
 
-  // إزالة بطاقات داخلية
   t = t.replace(/<!--KOTOBI_CARDS:[\s\S]*?-->/g, " ");
-
-  // إزالة كتل الأكواد ```...```
   t = t.replace(/```[\s\S]*?```/g, " ");
   t = t.replace(/`([^`]+)`/g, "$1");
-
-  // روابط ماركداون [text](url) -> text
   t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
-  // روابط عارية
   t = t.replace(/https?:\/\/\S+/g, " ");
-
-  // رموز ماركداون: ** __ * _ ~ # > | =
   t = t.replace(/[*_~#>|=`]+/g, " ");
-
-  // شرطات/فواصل زخرفية متكررة
   t = t.replace(/[-–—]{2,}/g, " ");
-  // شرطة منفردة بين مسافات
   t = t.replace(/\s-\s/g, "، ");
-
-  // أقواس فارغة
   t = t.replace(/\(\s*\)|\[\s*\]|\{\s*\}/g, " ");
-
-  // إزالة الإيموجي والرموز التصويرية
   t = t.replace(
     /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F000}-\u{1F2FF}\u{FE0F}]/gu,
     " ",
   );
-
-  // علامات نقطية شائعة في القوائم
   t = t.replace(/^[\s]*[•·▪◦●○■□]+\s*/gm, "");
-
-  // مسافات وأسطر زائدة
   t = t.replace(/[ \t]+/g, " ");
   t = t.replace(/\n{2,}/g, ". ");
   t = t.replace(/\s*\n\s*/g, ". ");
@@ -64,10 +78,13 @@ serve(async (req) => {
   }
 
   try {
-    const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
-    if (!ELEVENLABS_API_KEY) {
+    const apiKeys = loadApiKeys();
+    if (apiKeys.length === 0) {
       return new Response(
-        JSON.stringify({ error: "ELEVENLABS_API_KEY غير مهيأ" }),
+        JSON.stringify({
+          error:
+            "لا يوجد أي مفتاح ElevenLabs مهيأ. أضف ELEVENLABS_API_KEY أو ELEVENLABS_API_KEY_1..N في Supabase Secrets.",
+        }),
         {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -93,18 +110,18 @@ serve(async (req) => {
 
     const safeText = text.length > 4500 ? text.slice(0, 4500) : text;
 
-    const callElevenLabs = (vid: string) =>
+    const callElevenLabs = (apiKey: string, modelId: string) =>
       fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${vid}?output_format=mp3_44100_128`,
+        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
         {
           method: "POST",
           headers: {
-            "xi-api-key": ELEVENLABS_API_KEY,
+            "xi-api-key": apiKey,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             text: safeText,
-            model_id: "eleven_multilingual_v2",
+            model_id: modelId,
             voice_settings: {
               stability: 0.5,
               similarity_boost: 0.8,
@@ -116,35 +133,60 @@ serve(async (req) => {
         },
       );
 
-    let ttsResp = await callElevenLabs(voiceId);
-    // عند فشل المفتاح/الحساب — جرّب turbo بصوت احتياطي
-    if (ttsResp.status === 401) {
-      console.warn("[tts] 401 from ElevenLabs, retrying with fallback voice");
-      ttsResp = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": ELEVENLABS_API_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            text: safeText,
-            model_id: "eleven_turbo_v2_5",
-            voice_settings: { stability: 0.55, similarity_boost: 0.8 },
-          }),
-        },
+    // Round-robin: ابدأ من المفتاح التالي ودر على الباقين عند الفشل
+    const total = apiKeys.length;
+    const startIdx = nextStartIndex(total);
+    const attempts: { name: string; status: number; detail: string }[] = [];
+
+    let successResp: Response | null = null;
+    let usedKeyName = "";
+
+    for (let i = 0; i < total; i++) {
+      const idx = (startIdx + i) % total;
+      const { name, key } = apiKeys[idx];
+
+      let resp = await callElevenLabs(key, "eleven_multilingual_v2");
+
+      // عند الفشل بسبب الحصة/المصادقة جرّب turbo بنفس المفتاح
+      if (!resp.ok && (resp.status === 401 || resp.status === 429)) {
+        const firstErr = await resp.text().catch(() => "");
+        attempts.push({
+          name,
+          status: resp.status,
+          detail: firstErr.slice(0, 200),
+        });
+        console.warn(
+          `[tts] ${name} failed (${resp.status}) on multilingual_v2, trying turbo...`,
+        );
+        resp = await callElevenLabs(key, "eleven_turbo_v2_5");
+      }
+
+      if (resp.ok) {
+        successResp = resp;
+        usedKeyName = name;
+        break;
+      }
+
+      const errText = await resp.text().catch(() => "");
+      attempts.push({
+        name,
+        status: resp.status,
+        detail: errText.slice(0, 200),
+      });
+      console.warn(
+        `[tts] ${name} failed status=${resp.status}, trying next key...`,
       );
+
+      // 401/429 = حصة منتهية أو مصادقة فاشلة → جرّب التالي
+      // باقي الأخطاء (5xx/4xx) → جرّب التالي أيضاً
     }
 
-    if (!ttsResp.ok) {
-      const errText = await ttsResp.text();
-      console.error("ElevenLabs TTS error:", ttsResp.status, errText);
+    if (!successResp) {
+      console.error("All ElevenLabs keys failed", attempts);
       return new Response(
         JSON.stringify({
-          error: "فشل توليد الصوت",
-          status: ttsResp.status,
-          details: errText.slice(0, 500),
+          error: "فشل توليد الصوت من جميع المفاتيح المتاحة",
+          attempts,
         }),
         {
           status: 502,
@@ -153,7 +195,9 @@ serve(async (req) => {
       );
     }
 
-    const audioBuffer = await ttsResp.arrayBuffer();
+    console.log(`[tts] success using key: ${usedKeyName}`);
+
+    const audioBuffer = await successResp.arrayBuffer();
     const bytes = new Uint8Array(audioBuffer);
     let binary = "";
     const chunkSize = 0x8000;
@@ -163,7 +207,12 @@ serve(async (req) => {
     const audioBase64 = btoa(binary);
 
     return new Response(
-      JSON.stringify({ audio: audioBase64, mime: "audio/mpeg", format: "mp3" }),
+      JSON.stringify({
+        audio: audioBase64,
+        mime: "audio/mpeg",
+        format: "mp3",
+        usedKey: usedKeyName,
+      }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
