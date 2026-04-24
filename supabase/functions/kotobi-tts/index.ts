@@ -11,7 +11,7 @@ const corsHeaders = {
 const DEFAULT_VOICE_ID = "JBFqnCBsd6RMkjVDRZzb"; // George
 
 // ===== نظام تدوير مفاتيح ElevenLabs (Round-robin) =====
-// يقرأ كل المفاتيح من البيئة: ELEVENLABS_API_KEY, ELEVENLABS_API_KEY_1..N
+// يعتمد فقط على المفاتيح المرقمة من 1 إلى 5
 function loadApiKeys(): { name: string; key: string }[] {
   const keys: { name: string; key: string }[] = [];
   const seen = new Set<string>();
@@ -24,11 +24,8 @@ function loadApiKeys(): { name: string; key: string }[] {
     keys.push({ name, key: trimmed });
   };
 
-  // المفتاح الرئيسي (للتوافق الخلفي)
-  pushKey("ELEVENLABS_API_KEY", Deno.env.get("ELEVENLABS_API_KEY"));
-
-  // مفاتيح مرقمة 1..20
-  for (let i = 1; i <= 20; i++) {
+  // مفاتيح مرقمة 1..5 فقط
+  for (let i = 1; i <= 5; i++) {
     pushKey(`ELEVENLABS_API_KEY_${i}`, Deno.env.get(`ELEVENLABS_API_KEY_${i}`));
   }
 
