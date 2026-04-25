@@ -23,7 +23,31 @@ serve(async (req) => {
 
     const body = await req.json();
     const conversationId: string | undefined = body?.conversationId;
-    const userMessage: string = (body?.userMessage || "").toString().trim();
+    let userMessage: string = (body?.userMessage || "").toString().trim();
+    const audioUrl: string | undefined = body?.audioUrl;
+
+    // إذا أُرسل صوت بدلاً من نص — حوّله إلى نص عبر Voxtral STT (سريع)
+    if (!userMessage && audioUrl) {
+      try {
+        const audioBlob = await fetch(audioUrl).then((r) => r.blob());
+        const fd = new FormData();
+        fd.append("model", "voxtral-mini-latest");
+        fd.append("file", audioBlob, "voice.webm");
+        fd.append("language", "ar");
+        const sttResp = await fetch("https://api.mistral.ai/v1/audio/transcriptions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${MISTRAL_API_KEY}` },
+          body: fd,
+        });
+        if (sttResp.ok) {
+          const sttJson = await sttResp.json();
+          userMessage = (sttJson?.text || "").toString().trim();
+        }
+      } catch (e) {
+        console.error("[ai-kotobi-chat] STT error", e);
+      }
+      if (!userMessage) userMessage = "(رسالة صوتية)";
+    }
 
     if (!conversationId || !userMessage) {
       return new Response(JSON.stringify({ error: "Missing conversationId or userMessage" }), {
