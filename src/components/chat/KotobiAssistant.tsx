@@ -97,7 +97,7 @@ export const KotobiAssistant = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, voiceReplyEnabled]);
+  }, [isLoading]);
 
   const sendMessage = () => sendMessageWithText(inputValue);
 
@@ -118,7 +118,6 @@ export const KotobiAssistant = () => {
     if (voiceRecorder.state === 'recording') {
       voiceRecorder.stop();
     } else if (voiceRecorder.state === 'idle') {
-      stopSpeaking();
       voiceRecorder.start();
     }
   };
@@ -170,33 +169,13 @@ export const KotobiAssistant = () => {
               <span className="font-semibold">مساعد Kotobi</span>
               <img src="https://www2.0zz0.com/2025/08/18/17/788850650.png" alt="Kotobi Logo" style={{ height: 30 }} />
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setVoiceReplyEnabled((v) => {
-                    const next = !v;
-                    if (!next) stopSpeaking();
-                    return next;
-                  });
-                }}
-                aria-label={voiceReplyEnabled ? 'إيقاف القراءة الصوتية للردود' : 'تفعيل القراءة الصوتية للردود'}
-                title={voiceReplyEnabled ? 'القراءة الصوتية مفعّلة' : 'تفعيل القراءة الصوتية'}
-                style={{ color: voiceReplyEnabled ? '#FFD600' : '#fff' }}
-                className="hover:opacity-80 transition-opacity"
-              >
-                {voiceReplyEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-              </button>
-              <button
-                onClick={() => {
-                  stopSpeaking();
-                  setIsOpen(false);
-                }}
-                aria-label="إغلاق النافذة"
-                style={{ color: '#fff' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="إغلاق النافذة"
+              style={{ color: '#fff' }}
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* منطقة الرسائل */}
