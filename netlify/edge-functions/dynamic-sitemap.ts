@@ -32,7 +32,7 @@ export default async function handler(request: Request, context: any) {
       { url: 'https://kotobi.xyz/categories', changefreq: 'weekly', priority: 0.9 },
       { url: 'https://kotobi.xyz/authors', changefreq: 'weekly', priority: 0.9 },
       { url: 'https://kotobi.xyz/quotes', changefreq: 'daily', priority: 0.8 },
-      { url: 'https://kotobi.xyz/leaderboard', changefreq: 'daily', priority: 0.7 },
+      
       { url: 'https://kotobi.xyz/reading-clubs', changefreq: 'weekly', priority: 0.7 },
       { url: 'https://kotobi.xyz/suggestions', changefreq: 'weekly', priority: 0.7 },
       { url: 'https://kotobi.xyz/upload-book', changefreq: 'monthly', priority: 0.6 },
