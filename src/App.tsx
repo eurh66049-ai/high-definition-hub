@@ -47,7 +47,7 @@ const Suggestions = lazy(() => import('./pages/Suggestions'));
 const Messages = lazy(() => import('./pages/Messages'));
 
 
-const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+
 const ReadingClubs = lazy(() => import('./pages/ReadingClubs'));
 const ReadingClubRoom = lazy(() => import('./pages/ReadingClubRoom'));
 const Timeline = lazy(() => import('./pages/Timeline'));
@@ -112,7 +112,6 @@ function AppContent() {
           <Route path="/suggestions" element={<Suggestions />} />
           <Route path="/messages" element={<Messages />} />
           
-          <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/reading-clubs" element={<ReadingClubs />} />
           <Route path="/reading-clubs/:clubId" element={<ReadingClubRoom />} />
           <Route path="/timeline" element={<Timeline />} />
