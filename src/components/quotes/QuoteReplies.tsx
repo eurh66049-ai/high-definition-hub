@@ -10,7 +10,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { UnifiedProfileLink } from '@/components/profile/UnifiedProfileLink';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 
 interface QuoteRepliesProps {
   quoteId: string;

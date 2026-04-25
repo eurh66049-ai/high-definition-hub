@@ -11,7 +11,6 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReviewLikeButton from './ReviewLikeButton';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ar } from 'date-fns/locale';
 

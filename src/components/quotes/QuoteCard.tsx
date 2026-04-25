@@ -21,7 +21,6 @@ import { UnifiedProfileLink } from '@/components/profile/UnifiedProfileLink';
 import { QuoteShareImage } from './QuoteShareImage';
 import { QuoteLikeButton } from './QuoteLikeButton';
 import { QuoteReplies } from './QuoteReplies';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 import { resolveKotobiAiAvatar, isKotobiAiUser } from '@/utils/kotobiAi';
 
 interface QuoteCardProps {
