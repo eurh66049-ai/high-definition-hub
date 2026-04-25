@@ -5,7 +5,7 @@ import HomeIcon from '@/components/icons/HomeIcon';
 import UploadBookIcon from '@/components/icons/UploadBookIcon';
 import QuoteIcon from '@/components/icons/QuoteIcon';
 import ProfileIcon from '@/components/icons/ProfileIcon';
-import LeaderboardIcon from '@/components/icons/LeaderboardIcon';
+import MyBooksIcon from '@/components/icons/MyBooksIcon';
 
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
@@ -54,12 +54,12 @@ const BottomNavigation: React.FC = () => {
 
       <NavButton label="الاقتباسات" icon={<QuoteIcon className="h-5 w-5" />} active={isActive('/quotes')} onClick={() => handleNavigation('/quotes')} />
       
-      {/* زر الصدارة */}
+      {/* زر كتبي */}
       <NavButton 
-        label="الصدارة" 
-        icon={<LeaderboardIcon className="h-5 w-5" />} 
-        active={isActive('/leaderboard')} 
-        onClick={() => handleNavigation('/leaderboard')} 
+        label="كتبي" 
+        icon={<MyBooksIcon className="h-5 w-5" />} 
+        active={isActive('/my-books')} 
+        onClick={() => handleNavigation('/my-books')} 
       />
       
       <NavButton label="حسابي" icon={<ProfileIcon className="h-5 w-5" />} active={isActive('/profile')} onClick={() => handleNavigation('/profile')} />
