@@ -108,7 +108,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({ quote, onDelete, onUpdate 
               <div>
                 <p className="font-bold text-foreground hover:text-primary transition-colors flex items-center gap-1">
                   {quote.username}
-                  <LeaderboardBadge userId={quote.user_id} />
+                  
                 </p>
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-3 h-3 text-primary/60" />
