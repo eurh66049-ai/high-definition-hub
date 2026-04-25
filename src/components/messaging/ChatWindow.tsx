@@ -197,8 +197,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
 
-  // إيقاف الصوت عند إلغاء التحميل
-  useEffect(() => () => stopSpeaking(), []);
 
   useEffect(() => {
     if (loading || messages.length === 0) return;
@@ -486,28 +484,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         )}
         <div className="flex gap-2 items-center">
-          {isAiBot && (
-            <Button
-                onClick={() => {
-                  setVoiceReplyEnabled((v) => {
-                    const next = !v;
-                    if (!next) stopSpeaking();
-                    toast.success(next ? 'تم تفعيل القراءة الصوتية' : 'تم إيقاف القراءة الصوتية');
-                    return next;
-                  });
-                }}
-                size="icon"
-                variant="ghost"
-                className={cn(
-                  "rounded-full h-10 w-10 transition-all shrink-0",
-                  voiceReplyEnabled ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:bg-muted/60"
-                )}
-                title={voiceReplyEnabled ? 'القراءة الصوتية مفعّلة' : 'تفعيل القراءة الصوتية للردود'}
-                aria-label={voiceReplyEnabled ? 'إيقاف القراءة الصوتية' : 'تفعيل القراءة الصوتية'}
-              >
-                {voiceReplyEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
-          )}
           {/* زر تسجيل الرسالة الصوتية لكل المحادثات */}
           <Button
             onClick={handleMicClick}
