@@ -2870,24 +2870,6 @@ export type Database = {
         }
         Relationships: []
       }
-      tts_key_rotation_state: {
-        Row: {
-          current_index: number
-          rotation_name: string
-          updated_at: string
-        }
-        Insert: {
-          current_index?: number
-          rotation_name: string
-          updated_at?: string
-        }
-        Update: {
-          current_index?: number
-          rotation_name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       upload_sessions: {
         Row: {
           book_submission_id: string | null

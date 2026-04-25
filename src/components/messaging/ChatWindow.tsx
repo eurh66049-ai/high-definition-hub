@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, ArrowRight, Loader2, Check, CheckCheck, Bot, Smile, Mic, Square, Volume2, VolumeX } from 'lucide-react';
+import { Send, ArrowRight, Loader2, Check, CheckCheck, Bot, Smile, Mic, Square } from 'lucide-react';
 import { useMessages, Message } from '@/hooks/useMessages';
 import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
@@ -15,7 +15,7 @@ import { optimizeImageUrl } from '@/utils/imageProxy';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KOTOBI_AI_USER_ID, KOTOBI_AI_AVATAR_URL } from '@/utils/kotobiAi';
 import { KotobiAiCards, parseKotobiCards } from '@/components/chat/KotobiAiCards';
-import { useVoiceRecorder, speakArabic, stopSpeaking } from '@/hooks/useVoiceRecorder';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { toast } from 'sonner';
 import { uploadVoiceMessage } from '@/utils/uploadVoiceMessage';
 import VoiceMessageBubble from './VoiceMessageBubble';
@@ -42,20 +42,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const { messages, loading, sending, sendMessage, refetch } = useMessages(conversationId);
   const [newMessage, setNewMessage] = useState('');
   const [aiThinking, setAiThinking] = useState(false);
-  const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(false);
+  // ملاحظة: تم حذف ميزة قراءة الردود صوتياً نهائياً.
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const didInitialScrollRef = useRef(false);
-  const lastSpokenMessageIdRef = useRef<string | null>(null);
-
   // Reset scroll flag when conversation changes
   useEffect(() => {
     didInitialScrollRef.current = false;
-    lastSpokenMessageIdRef.current = null;
-    stopSpeaking();
   }, [conversationId]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
@@ -196,24 +192,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (voiceRecorder.state === 'recording') {
       voiceRecorder.stop();
     } else if (voiceRecorder.state === 'idle') {
-      stopSpeaking();
       voiceRecorder.start();
     }
   };
 
-  // قراءة آخر رد من AI تلقائياً عند تفعيل الصوت
-  useEffect(() => {
-    if (!isAiBot || !voiceReplyEnabled || messages.length === 0) return;
-    const last = messages[messages.length - 1];
-    if (!last || last.sender_id === user?.id) return;
-    if (lastSpokenMessageIdRef.current === last.id) return;
-    lastSpokenMessageIdRef.current = last.id;
-    const { cleanText } = parseKotobiCards(last.content);
-    if (cleanText) speakArabic(cleanText);
-  }, [messages, voiceReplyEnabled, isAiBot, user?.id]);
 
-  // إيقاف الصوت عند إلغاء التحميل
-  useEffect(() => () => stopSpeaking(), []);
 
   useEffect(() => {
     if (loading || messages.length === 0) return;
@@ -501,28 +484,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         )}
         <div className="flex gap-2 items-center">
-          {isAiBot && (
-            <Button
-                onClick={() => {
-                  setVoiceReplyEnabled((v) => {
-                    const next = !v;
-                    if (!next) stopSpeaking();
-                    toast.success(next ? 'تم تفعيل القراءة الصوتية' : 'تم إيقاف القراءة الصوتية');
-                    return next;
-                  });
-                }}
-                size="icon"
-                variant="ghost"
-                className={cn(
-                  "rounded-full h-10 w-10 transition-all shrink-0",
-                  voiceReplyEnabled ? "text-primary bg-primary/10 hover:bg-primary/20" : "text-muted-foreground hover:bg-muted/60"
-                )}
-                title={voiceReplyEnabled ? 'القراءة الصوتية مفعّلة' : 'تفعيل القراءة الصوتية للردود'}
-                aria-label={voiceReplyEnabled ? 'إيقاف القراءة الصوتية' : 'تفعيل القراءة الصوتية'}
-              >
-                {voiceReplyEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-            </Button>
-          )}
           {/* زر تسجيل الرسالة الصوتية لكل المحادثات */}
           <Button
             onClick={handleMicClick}

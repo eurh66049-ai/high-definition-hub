@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Mic, Square, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { X, Send, Mic, Square, Loader2 } from 'lucide-react';
 import { supabase, supabaseFunctions } from '@/integrations/supabase/client';
 import { createBookSlug } from '@/utils/bookSlug';
-import { useVoiceRecorder, speakArabic, stopSpeaking } from '@/hooks/useVoiceRecorder';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 interface AuthorInfo {
   id: string;
   name: string;
@@ -40,7 +40,6 @@ export const KotobiAssistant = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,11 +51,8 @@ export const KotobiAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  // إيقاف القراءة الصوتية عند إغلاق النافذة
-  useEffect(() => {
-    if (!isOpen) stopSpeaking();
-    return () => stopSpeaking();
-  }, [isOpen]);
+  // ملاحظة: تم حذف ميزة قراءة الردود صوتياً نهائياً.
+
 
   const sendMessageWithText = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -88,10 +84,6 @@ export const KotobiAssistant = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-
-      if (voiceReplyEnabled && data.reply) {
-        speakArabic(data.reply);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -105,7 +97,7 @@ export const KotobiAssistant = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, voiceReplyEnabled]);
+  }, [isLoading]);
 
   const sendMessage = () => sendMessageWithText(inputValue);
 
@@ -126,7 +118,6 @@ export const KotobiAssistant = () => {
     if (voiceRecorder.state === 'recording') {
       voiceRecorder.stop();
     } else if (voiceRecorder.state === 'idle') {
-      stopSpeaking();
       voiceRecorder.start();
     }
   };
@@ -178,33 +169,13 @@ export const KotobiAssistant = () => {
               <span className="font-semibold">مساعد Kotobi</span>
               <img src="https://www2.0zz0.com/2025/08/18/17/788850650.png" alt="Kotobi Logo" style={{ height: 30 }} />
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => {
-                  setVoiceReplyEnabled((v) => {
-                    const next = !v;
-                    if (!next) stopSpeaking();
-                    return next;
-                  });
-                }}
-                aria-label={voiceReplyEnabled ? 'إيقاف القراءة الصوتية للردود' : 'تفعيل القراءة الصوتية للردود'}
-                title={voiceReplyEnabled ? 'القراءة الصوتية مفعّلة' : 'تفعيل القراءة الصوتية'}
-                style={{ color: voiceReplyEnabled ? '#FFD600' : '#fff' }}
-                className="hover:opacity-80 transition-opacity"
-              >
-                {voiceReplyEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-              </button>
-              <button
-                onClick={() => {
-                  stopSpeaking();
-                  setIsOpen(false);
-                }}
-                aria-label="إغلاق النافذة"
-                style={{ color: '#fff' }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              aria-label="إغلاق النافذة"
+              style={{ color: '#fff' }}
+            >
+              <X size={20} />
+            </button>
           </div>
 
           {/* منطقة الرسائل */}
