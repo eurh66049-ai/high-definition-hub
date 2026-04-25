@@ -28,7 +28,6 @@ import { FollowOptionsPopover } from '@/components/authors/FollowOptionsPopover'
 import { formatDistanceToNow, format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import VerifiedIcon from '@/components/icons/VerifiedIcon';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 import { getCategoryInArabic } from '@/utils/categoryTranslation';
 import { ProfileSectionTabs } from '@/components/profile/ProfileSectionTabs';
 import { VirtualReadingRoom } from '@/components/profile/VirtualReadingRoom';
@@ -269,7 +268,7 @@ const PublicUserProfile: React.FC = () => {
                   {profile.is_verified && (
                     <VerifiedIcon size={22} className="flex-shrink-0 w-5 h-5" />
                   )}
-                  <LeaderboardBadge userId={profile.id} size="md" showLabel />
+                  
                 </div>
 
                 {/* آخر نشاط */}

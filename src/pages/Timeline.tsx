@@ -93,7 +93,7 @@ const Timeline: React.FC = () => {
               <p className="text-muted-foreground text-sm max-w-sm mx-auto">
                 تابع مستخدمين آخرين لتظهر نشاطاتهم هنا — مثل الإعجابات والمراجعات والاقتباسات
               </p>
-              <Button onClick={() => navigate('/leaderboard')} variant="outline" className="rounded-full mt-2">
+              <Button onClick={() => navigate('/authors')} variant="outline" className="rounded-full mt-2">
                 اكتشف مستخدمين
               </Button>
             </motion.div>

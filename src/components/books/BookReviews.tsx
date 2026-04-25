@@ -11,7 +11,6 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import ReviewLikeButton from './ReviewLikeButton';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { ar } from 'date-fns/locale';
 
@@ -517,7 +516,7 @@ const BookReviews: React.FC<BookReviewsProps> = ({ bookId, bookTitle }) => {
                           <span className="font-medium text-foreground hover:text-primary transition-colors">
                             {review.profiles?.username || review.profiles?.email?.split('@')[0] || 'مستخدم'}
                           </span>
-                          <LeaderboardBadge userId={review.user_id} />
+                          
                         </UnifiedProfileLink>
                         <div className="flex items-center gap-2">
                           <div className="flex">

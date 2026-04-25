@@ -21,7 +21,7 @@ import HomeIcon from '@/components/icons/HomeIcon';
 import CategoriesIcon from '@/components/icons/CategoriesIcon';
 import FavoriteIcon from '@/components/icons/FavoriteIcon';
 import AuthorsIcon from '@/components/icons/AuthorsIcon';
-import LeaderboardIcon from '@/components/icons/LeaderboardIcon';
+
 
 import {
   Sheet,
@@ -125,7 +125,6 @@ const Navbar: React.FC = () => {
               )}
 
               <div className="my-3 h-px bg-border" />
-              <MenuButton label="الصدارة" icon={<LeaderboardIcon />} onClick={() => handleNavigation('/leaderboard')} active={isActive('/leaderboard')} />
               
               <MenuButton label="اتصل بنا" icon={<MessageSquare />} onClick={() => handleNavigation('/contact-us')} active={isActive('/contact-us')} />
               <MenuButton label="دعم المشروع" icon={<Heart />} onClick={() => handleNavigation('/donation')} />

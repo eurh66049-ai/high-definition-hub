@@ -10,7 +10,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import { UnifiedProfileLink } from '@/components/profile/UnifiedProfileLink';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { LeaderboardBadge } from '@/components/leaderboard/LeaderboardBadge';
 
 interface QuoteRepliesProps {
   quoteId: string;
@@ -108,7 +107,7 @@ export const QuoteReplies: React.FC<QuoteRepliesProps> = ({ quoteId }) => {
                             <UnifiedProfileLink userId={reply.user_id} username={reply.username}>
                               <span className="text-sm font-semibold text-foreground hover:text-primary transition-colors">{reply.username}</span>
                             </UnifiedProfileLink>
-                            <LeaderboardBadge userId={reply.user_id} />
+                            
                             <span className="text-xs text-muted-foreground flex-shrink-0">
                               {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true, locale: ar })}
                             </span>
