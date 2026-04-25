@@ -15,7 +15,7 @@ import { optimizeImageUrl } from '@/utils/imageProxy';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KOTOBI_AI_USER_ID, KOTOBI_AI_AVATAR_URL } from '@/utils/kotobiAi';
 import { KotobiAiCards, parseKotobiCards } from '@/components/chat/KotobiAiCards';
-import { useVoiceRecorder, speakArabic, stopSpeaking } from '@/hooks/useVoiceRecorder';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 import { toast } from 'sonner';
 import { uploadVoiceMessage } from '@/utils/uploadVoiceMessage';
 import VoiceMessageBubble from './VoiceMessageBubble';

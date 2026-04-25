@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Send, Mic, Square, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { supabase, supabaseFunctions } from '@/integrations/supabase/client';
 import { createBookSlug } from '@/utils/bookSlug';
-import { useVoiceRecorder, speakArabic, stopSpeaking } from '@/hooks/useVoiceRecorder';
+import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
 interface AuthorInfo {
   id: string;
   name: string;
