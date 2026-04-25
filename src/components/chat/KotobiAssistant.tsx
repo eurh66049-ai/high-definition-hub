@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Send, Mic, Square, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { X, Send, Mic, Square, Loader2 } from 'lucide-react';
 import { supabase, supabaseFunctions } from '@/integrations/supabase/client';
 import { createBookSlug } from '@/utils/bookSlug';
 import { useVoiceRecorder } from '@/hooks/useVoiceRecorder';
@@ -40,7 +40,6 @@ export const KotobiAssistant = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -52,11 +51,8 @@ export const KotobiAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  // إيقاف القراءة الصوتية عند إغلاق النافذة
-  useEffect(() => {
-    if (!isOpen) stopSpeaking();
-    return () => stopSpeaking();
-  }, [isOpen]);
+  // ملاحظة: تم حذف ميزة قراءة الردود صوتياً نهائياً.
+
 
   const sendMessageWithText = useCallback(async (text: string) => {
     const trimmed = text.trim();
@@ -88,10 +84,6 @@ export const KotobiAssistant = () => {
       };
 
       setMessages((prev) => [...prev, botMessage]);
-
-      if (voiceReplyEnabled && data.reply) {
-        speakArabic(data.reply);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
 
