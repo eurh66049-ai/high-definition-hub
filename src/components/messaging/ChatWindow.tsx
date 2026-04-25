@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Send, ArrowRight, Loader2, Check, CheckCheck, Bot, Smile, Mic, Square, Volume2, VolumeX } from 'lucide-react';
+import { Send, ArrowRight, Loader2, Check, CheckCheck, Bot, Smile, Mic, Square } from 'lucide-react';
 import { useMessages, Message } from '@/hooks/useMessages';
 import { useAuth } from '@/context/AuthContext';
 import { formatDistanceToNow, format, isToday, isYesterday } from 'date-fns';
@@ -42,20 +42,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const { messages, loading, sending, sendMessage, refetch } = useMessages(conversationId);
   const [newMessage, setNewMessage] = useState('');
   const [aiThinking, setAiThinking] = useState(false);
-  const [voiceReplyEnabled, setVoiceReplyEnabled] = useState(false);
+  // ملاحظة: تم حذف ميزة قراءة الردود صوتياً نهائياً.
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [uploadingVoice, setUploadingVoice] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const didInitialScrollRef = useRef(false);
-  const lastSpokenMessageIdRef = useRef<string | null>(null);
-
   // Reset scroll flag when conversation changes
   useEffect(() => {
     didInitialScrollRef.current = false;
-    lastSpokenMessageIdRef.current = null;
-    stopSpeaking();
   }, [conversationId]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
@@ -196,21 +192,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     if (voiceRecorder.state === 'recording') {
       voiceRecorder.stop();
     } else if (voiceRecorder.state === 'idle') {
-      stopSpeaking();
       voiceRecorder.start();
     }
   };
 
-  // قراءة آخر رد من AI تلقائياً عند تفعيل الصوت
-  useEffect(() => {
-    if (!isAiBot || !voiceReplyEnabled || messages.length === 0) return;
-    const last = messages[messages.length - 1];
-    if (!last || last.sender_id === user?.id) return;
-    if (lastSpokenMessageIdRef.current === last.id) return;
-    lastSpokenMessageIdRef.current = last.id;
-    const { cleanText } = parseKotobiCards(last.content);
-    if (cleanText) speakArabic(cleanText);
-  }, [messages, voiceReplyEnabled, isAiBot, user?.id]);
 
   // إيقاف الصوت عند إلغاء التحميل
   useEffect(() => () => stopSpeaking(), []);
